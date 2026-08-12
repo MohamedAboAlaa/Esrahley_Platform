@@ -66,3 +66,63 @@ Esrahley solves this by letting clients post a **"Teach" or "Coach"** request in
 **Philosophy:** Production-grade *practices*, not production-scale *infrastructure*.
 
 ---
+
+### Phase 2: Actors & Use Cases
+
+#### Actors
+
+- **Client** — posts teaching/coaching requests, hires freelancers
+- **Freelancer** — applies to requests, delivers teaching/coaching
+- **Admin** — manages and oversees the platform
+
+*(Note: Client and Freelancer are two views of the same account, not separate account types.)*
+
+---
+
+#### Actor: Client
+
+- Register/Sign-up
+- Login
+- Forgot Password (reset via email code)
+- Edit account
+- View dashboard (projects, earnings, stats)
+- Top-up wallet balance
+- Post a project (title, details, budget range, duration)
+- Attach resources to a project (files/PDFs/images)
+- View list of applicants per project
+- Chat with any freelancer who applied
+- Accept a freelancer
+- Revert to pending / choose another freelancer
+- Mark project as finished
+- Rate and review freelancer
+
+---
+
+#### Actor: Freelancer
+
+- Register/Sign-up
+- Login
+- Forgot Password (reset via email code)
+- Edit account
+- View dashboard (projects, earnings, stats)
+- Browse open projects
+- Apply to a project (proposal text, optional video, proposed price, proposed duration)
+- View own applications (with status: pending / accepted / rejected)
+- Withdraw/Cancel an application
+- Chat with client (after applying)
+- Withdraw earnings
+- Rate and review client
+
+---
+
+#### Actor: Admin
+
+- User management — view/suspend/ban users who violate rules
+- Content moderation — remove inappropriate projects/proposals/reviews if reported
+- Financial oversight — view transactions, handle stuck/failed payments
+- Platform monitoring — view basic stats (total users, total projects, revenue)
+- View system logs / activity
+
+---
+
+---
