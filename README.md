@@ -117,10 +117,14 @@ Esrahley solves this by letting clients post a **"Teach" or "Coach"** request in
 
 ### Actor: Admin
 
-- User management — view/suspend/ban users who violate rules
-- Content moderation — remove inappropriate projects/proposals/reviews if reported
-- Financial oversight — view transactions, handle stuck/failed payments
-- Platform monitoring — view basic stats (total users, total projects, revenue)
+- View users
+- Suspend users who violate rules
+- Ban users who violate rules
+- Remove inappropriate projects if reported
+- Remove inappropriate proposals if reported
+- Remove inappropriate reviews if reported
+- View transactions
+- View basic stats (total users, total projects, revenue)
 - View system logs / activity
 
 ---
