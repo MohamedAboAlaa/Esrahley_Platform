@@ -177,4 +177,138 @@ Esrahley solves this by letting clients post a **"Teach" or "Coach"** request in
 
 ---
 
+Good — trust noted, and I'll use it responsibly: I'll flag it clearly whenever something is genuinely better learned "later" vs. "now," like I just did.
+
+## Phase 4: System Architecture
+
+### Layered Architecture
+```
+Client (Postman / Frontend / Mobile)
+        ↓
+[Auth Filter — verifies JWT token, identifies the user]
+        ↓
+Controller Layer — receives requests, delegates, returns responses (no logic, no error handling)
+        ↓
+Service Layer — business rules, authorization checks (ownership), calls Repository and/or external APIs
+        ↓
+Repository Layer (JPA) ──→ Database
+Service Layer also ──→ External API Clients (e.g., Stripe)
+        ↑
+[Global Exception Handler — catches thrown exceptions from anywhere, returns clean HTTP error responses]
+```
+
+### Key Architectural Decisions
+- **Authentication**: JWT-based, verified by a security filter before requests reach Controllers. Login issues a signed token; every subsequent request carries it.
+- **Authorization**: enforced manually in the Service layer (e.g., "does this wallet belong to the requesting user?") — separate concern from Authentication.
+- **Error Handling**: centralized via a Global Exception Handler (`@RestControllerAdvice`) — Controllers never contain try/catch blocks.
+- **Chat**: 
+  - v1 (initial working version): simple REST polling (`GET /chats/{id}/messages`) — same Controller→Service→Repository pattern as everything else.
+  - v2 (planned upgrade, learned as a dedicated step in Phase 9): real-time via WebSockets/STOMP, once core system is functional.
+- **Payments (Stripe)**: Service layer coordinates between Repository (own DB: Wallet, Transaction) and an external Stripe API client (test mode for v1).
+
+---
+
+## Phase 5: Database Design
+
+```sql
+User
+------------------------
+id              BIGINT (PK, auto-increment)
+name            VARCHAR(100)
+email           VARCHAR(150)   UNIQUE
+password        VARCHAR(255)      -- stored hashed
+phone           VARCHAR(20)    NULL
+profile_bio     TEXT           NULL
+created_at      TIMESTAMP
+
+Project
+------------------------
+id              BIGINT (PK, auto-increment)
+client_id       BIGINT (FK → User.id)
+title           VARCHAR(150)
+description     TEXT
+budget_min      DECIMAL(10,2)
+budget_max      DECIMAL(10,2)
+duration        VARCHAR(50)
+type            VARCHAR(20)     -- 'TEACH' or 'COACH'
+subject         VARCHAR(100)
+status          VARCHAR(20)     -- 'OPEN' / 'IN_PROGRESS' / 'FINISHED'
+created_at      TIMESTAMP
+
+Proposal
+------------------------
+id                  BIGINT (PK, auto-increment)
+project_id          BIGINT (FK → Project.id)
+freelancer_id       BIGINT (FK → User.id)
+proposal_text       TEXT
+video_url           VARCHAR(255)   NULL
+proposed_price      DECIMAL(10,2)
+proposed_duration   VARCHAR(50)
+status              VARCHAR(20)    -- 'PENDING' / 'ACCEPTED' / 'REJECTED'
+created_at          TIMESTAMP
+
+Resource
+------------------------
+id              BIGINT (PK, auto-increment)
+project_id      BIGINT (FK → Project.id)
+file_url        VARCHAR(255)
+file_type       VARCHAR(50)
+uploaded_at     TIMESTAMP
+
+Wallet
+------------------------
+id              BIGINT (PK, auto-increment)
+user_id         BIGINT (FK → User.id)   UNIQUE   -- enforces 1:1
+balance         DECIMAL(10,2)   DEFAULT 0
+updated_at      TIMESTAMP
+
+Transaction
+------------------------
+id                  BIGINT (PK, auto-increment)
+wallet_id           BIGINT (FK → Wallet.id)
+type                VARCHAR(20)     -- 'TOPUP' / 'PAYMENT' / 'WITHDRAWAL' / 'FEE'
+amount              DECIMAL(10,2)
+related_project_id  BIGINT (FK → Project.id)   NULL
+created_at          TIMESTAMP
+
+Chat
+------------------------
+id              BIGINT (PK, auto-increment)
+project_id      BIGINT (FK → Project.id)   UNIQUE   -- enforces 1:1
+created_at      TIMESTAMP
+
+Message
+------------------------
+id              BIGINT (PK, auto-increment)
+chat_id         BIGINT (FK → Chat.id)
+sender_id       BIGINT (FK → User.id)
+text            TEXT
+sent_at         TIMESTAMP
+read_status     BOOLEAN   DEFAULT FALSE
+
+Rating_Review
+------------------------
+id              BIGINT (PK, auto-increment)
+project_id      BIGINT (FK → Project.id)
+reviewer_id     BIGINT (FK → User.id)     -- who wrote it
+reviewee_id     BIGINT (FK → User.id)     -- who it's about
+rating          INT                       -- 1 to 5
+comment         TEXT     NULL
+created_at      TIMESTAMP
+```
+
+---
+
+### A few technical notes worth reading carefully:
+
+1. **`Wallet.user_id` and `Chat.project_id` are marked `UNIQUE`** — this is exactly how a database *enforces* a 1:1 relationship (without it, nothing stops someone from creating two wallets for one user, which would break your "balance" logic).
+
+2. **Status fields (`Project.status`, `Proposal.status`) are stored as `VARCHAR` here for readability** — in actual JPA code (Phase 9), these become **Enums** (a fixed list of allowed values), which is safer than free text. Just flagging it now so it's not a surprise later.
+
+3. **`Rating_Review` has two separate FKs to `User`** (`reviewer_id`, `reviewee_id`) — this is the "same entity, two relationships, two meanings" pattern we discussed in Phase 3, now made concrete in the table.
+
+4. **Nothing here is M:N** — confirming what I mentioned earlier: your Phase 3 decision to make `Proposal` its own entity already resolved the one relationship that looked M:N at first glance.
+
+---
+
 ---
