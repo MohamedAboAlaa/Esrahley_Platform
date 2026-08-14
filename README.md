@@ -300,18 +300,91 @@ rating          INT                       -- 1 to 5
 comment         TEXT     NULL
 created_at      TIMESTAMP
 ```
+---
+
+## Phase 6: API Design
+
+### Conventions Used
+- URLs are nouns (resources), HTTP methods express the action
+- `{id}` in a path = a specific resource instance
+- Query params (`?status=...`) used for filtering, not separate endpoints
+- Responses use DTOs, never raw database Entities (e.g., passwords never returned)
+- Standard status codes: `200/201` success, `400` bad input, `401` not authenticated, `403` not authorized, `404` not found, `429` rate-limited
 
 ---
 
-### A few technical notes worth reading carefully:
+### AUTH
+```
+POST   /auth/register
+POST   /auth/login
+POST   /auth/forgot-password
+POST   /auth/reset-password
+```
 
-1. **`Wallet.user_id` and `Chat.project_id` are marked `UNIQUE`** — this is exactly how a database *enforces* a 1:1 relationship (without it, nothing stops someone from creating two wallets for one user, which would break your "balance" logic).
+### USER
+```
+GET    /users/me                    (view own profile / dashboard)
+PATCH  /users/me                    (edit account)
+GET    /users/{id}/reviews          (view reviews for a specific user)
+```
 
-2. **Status fields (`Project.status`, `Proposal.status`) are stored as `VARCHAR` here for readability** — in actual JPA code (Phase 9), these become **Enums** (a fixed list of allowed values), which is safer than free text. Just flagging it now so it's not a surprise later.
+### PROJECTS
+```
+POST   /projects                    (client posts a project)
+GET    /projects                    (browse open projects)
+GET    /projects/{id}               (view one project)
+POST   /projects/{id}/resources     (attach a file)
+PATCH  /projects/{id}/finish        (client marks finished)
+```
 
-3. **`Rating_Review` has two separate FKs to `User`** (`reviewer_id`, `reviewee_id`) — this is the "same entity, two relationships, two meanings" pattern we discussed in Phase 3, now made concrete in the table.
+### PROPOSALS
+```
+POST   /projects/{id}/proposals     (freelancer applies)
+GET    /projects/{id}/proposals     (client views applicants)
+GET    /users/me/proposals          (freelancer views own applications)
+PATCH  /proposals/{id}/accept       (client accepts a freelancer)
+PATCH  /proposals/{id}/withdraw     (freelancer cancels application)
+```
 
-4. **Nothing here is M:N** — confirming what I mentioned earlier: your Phase 3 decision to make `Proposal` its own entity already resolved the one relationship that looked M:N at first glance.
+### WALLET
+```
+GET    /wallet
+POST   /wallet/topup
+POST   /wallet/withdraw
+```
+
+### CHAT
+```
+GET    /chats/{id}/messages
+POST   /chats/{id}/messages
+```
+
+### REVIEWS
+```
+POST   /projects/{id}/reviews       (submit a review — direction determined by requester's role on that project)
+```
+
+### ADMIN
+```
+GET    /admin/users
+GET    /admin/users/{id}
+GET    /admin/users?status=SUSPENDED   (or BANNED — query filter)
+PATCH  /admin/users/{id}/status        (body: { "status": "SUSPENDED" | "BANNED" | "ACTIVE" })
+
+GET    /admin/projects
+GET    /admin/projects/{id}
+DELETE /admin/projects/{id}
+
+GET    /admin/proposals
+GET    /admin/proposals/{id}
+DELETE /admin/proposals/{id}
+
+DELETE /admin/reviews/{id}
+
+GET    /admin/transactions
+GET    /admin/stats
+GET    /admin/logs
+```
 
 ---
 
