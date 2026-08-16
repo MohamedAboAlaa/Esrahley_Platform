@@ -417,4 +417,157 @@ GET    /admin/logs
 
 ---
 
+## Phase 8: Full Project Structure
+
+```
+com.esrahley
+│
+├── EsrahleyApplication.java
+│
+├── auth
+│   ├── AuthController.java
+│   ├── AuthService.java
+│   ├── JwtUtil.java
+│   ├── SecurityConfig.java
+│   ├── JwtAuthFilter.java
+│   ├── dto
+│   │   ├── RegisterRequest.java
+│   │   ├── LoginRequest.java
+│   │   ├── LoginResponse.java
+│   │   ├── ForgotPasswordRequest.java
+│   │   ├── ResetPasswordRequest.java
+│   │   ├── RefreshTokenRequest.java
+│   │   ├── RefreshTokenResponse.java
+│
+├── user
+│   ├── User.java
+│   ├── UserController.java
+│   ├── UserService.java
+│   ├── UserRepository.java
+│   ├── dto
+│   │   ├── UserResponse.java
+│   │   ├── UpdateUserRequest.java
+│
+├── project
+│   ├── Project.java
+│   ├── ProjectController.java
+│   ├── ProjectService.java
+│   ├── ProjectRepository.java
+│   ├── ProjectStatus.java
+│   ├── ProjectType.java
+│   ├── dto
+│   │   ├── CreateProjectRequest.java
+│   │   ├── ProjectResponse.java
+│
+├── resource
+│   ├── Resource.java
+│   ├── ResourceController.java
+│   ├── ResourceService.java
+│   ├── ResourceRepository.java
+│   ├── dto
+│   │   ├── ResourceResponse.java
+│
+├── proposal
+│   ├── Proposal.java
+│   ├── ProposalController.java
+│   ├── ProposalService.java
+│   ├── ProposalRepository.java
+│   ├── ProposalStatus.java
+│   ├── dto
+│   │   ├── CreateProposalRequest.java
+│   │   ├── ProposalResponse.java
+│
+├── wallet
+│   ├── Wallet.java
+│   ├── WalletController.java
+│   ├── WalletService.java
+│   ├── WalletRepository.java
+│   ├── dto
+│   │   ├── WalletResponse.java
+│   │   ├── TopUpRequest.java
+│   │   ├── WithdrawRequest.java
+│
+├── transaction
+│   ├── Transaction.java
+│   ├── TransactionRepository.java
+│   ├── TransactionType.java
+│   ├── dto
+│   │   ├── TransactionResponse.java
+│
+├── chat
+│   ├── Chat.java
+│   ├── ChatController.java
+│   ├── ChatService.java
+│   ├── ChatRepository.java
+│   ├── dto
+│   │   ├── ChatResponse.java
+│
+├── message
+│   ├── Message.java
+│   ├── MessageController.java
+│   ├── MessageService.java
+│   ├── MessageRepository.java
+│   ├── dto
+│   │   ├── SendMessageRequest.java
+│   │   ├── MessageResponse.java
+│
+├── review
+│   ├── RatingReview.java
+│   ├── ReviewController.java
+│   ├── ReviewService.java
+│   ├── ReviewRepository.java
+│   ├── dto
+│   │   ├── CreateReviewRequest.java
+│   │   ├── ReviewResponse.java
+│
+├── admin
+│   ├── AdminController.java
+│   ├── AdminService.java
+│   ├── dto
+│   │   ├── UpdateUserStatusRequest.java
+│   │   ├── AdminStatsResponse.java
+│
+├── payment
+│   ├── StripeClient.java
+│   ├── StripeConfig.java
+│
+└── common
+    ├── GlobalExceptionHandler.java
+    ├── ApiErrorResponse.java
+    ├── exceptions
+    │   ├── InvalidPriceException.java
+    │   ├── ApplicationLimitExceededException.java
+    │   ├── UnauthorizedAccessException.java
+    │   ├── InsufficientBalanceException.java
+    │   ├── ResourceNotFoundException.java
+    │   ├── DuplicateEmailException.java
+```
+
+```
+src/main/resources
+├── application.yml
+├── application-dev.yml
+├── application-prod.yml
+└── db
+    └── migration
+        ├── V1__create_user_table.sql
+        ├── V2__create_project_table.sql
+        ├── V3__create_proposal_table.sql
+        ├── V4__create_resource_table.sql
+        ├── V5__create_wallet_table.sql
+        ├── V6__create_transaction_table.sql
+        ├── V7__create_chat_table.sql
+        ├── V8__create_message_table.sql
+        ├── V9__create_review_table.sql
+```
+
+---
+
+**Notes**
+- `ApiErrorResponse.java` — a small standard shape for every error response (e.g., `{ "message": "...", "status": 400, "timestamp": "..." }`) — used by `GlobalExceptionHandler`, ties back to your "consistent API responses" Non-Functional Requirement (Usability, Phase 1b)
+- `application-dev.yml` / `application-prod.yml` — separate configs per environment (different DB credentials for local dev vs. real deployment) — a real production practice, part of your stated goal
+- `admin` package has no `Admin.java` entity — because Admin isn't a separate entity, just a `User` with role `ADMIN` (consistent with Phase 7's role decision)
+
+---
+
 ---
