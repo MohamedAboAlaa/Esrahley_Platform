@@ -388,4 +388,33 @@ GET    /admin/logs
 
 ---
 
+## Phase 7: Security & Auth Design
+
+### Roles
+- **USER** — default role for every registered account (acts as Client or Freelancer contextually, based on data ownership, not a separate role)
+- **ADMIN** — full moderation/oversight access
+
+### Permission Matrix
+
+| Access Level | Applies To |
+|---|---|
+| **Public** (no token) | `/auth/register`, `/auth/login`, `/auth/forgot-password`, `/auth/reset-password` |
+| **Authenticated USER** | All non-admin endpoints (`/projects`, `/proposals`, `/wallet`, `/chats`, `/reviews`, etc.) |
+| **Authenticated + Ownership check** | `PATCH /users/me`, `/wallet/withdraw`, `PATCH /projects/{id}/finish`, `PATCH /proposals/{id}/accept`, `/chats/{id}/messages` — verified in Service layer against the resource's actual owner/participant |
+| **ADMIN only** | All `/admin/**` endpoints |
+
+### Token Strategy
+- **Access Token**: short-lived (~30–60 min), sent with every request, verified by the Security Filter (Phase 4)
+- **Refresh Token**: long-lived (~7 days), used only to obtain a new access token via `POST /auth/refresh`
+- Rationale: minimizes damage if the frequently-used access token leaks; refresh token is rarely transmitted, lower exposure
+
+### Password Security
+- Passwords hashed with **BCrypt** before storage — never stored/transmitted in plain text
+
+### Two-Layer Protection Model (recap from Phase 4)
+1. **Authentication** — "Are you a real, logged-in user?" (Security Filter, automatic)
+2. **Authorization** — "Are you allowed to touch *this specific* resource?" (Role check, automatic + Ownership check, manual in Service layer)
+
+---
+
 ---
